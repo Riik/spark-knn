@@ -384,7 +384,8 @@ class KNN(override val uid: String) extends Estimator[KNNModel] with KNNParams {
       .rdd
       .map(row => new RowWithVector(row.getAs[Vector](0), row.getStruct(1)))
     //sample data to build top-level tree
-    val sampled = data.sample(withReplacement = false, $(topTreeSize).toDouble / dataset.count(), rand.nextLong()).collect()
+    val samplingFraction = math.min($(topTreeSize).toDouble / dataset.count(), 1.0)
+    val sampled = data.sample(withReplacement = false, samplingFraction, rand.nextLong()).collect()
     val topTree = MetricTree.build(sampled, $(topTreeLeafSize), rand.nextLong())
     //build partitioner using top-level tree
     val part = new KNNPartitioner(topTree)
